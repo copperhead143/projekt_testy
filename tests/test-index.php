@@ -5,7 +5,7 @@ require_once 'LoginService.php';
 
 class LoginServiceTest extends TestCase
 {
-    public function testSuccessfulLoginRedirectsToCorrectPage()
+    public function testSuccessfulLoginRedirectsToCorrectPage() //testuje przypadki udanego logowania
     {
         $_POST["login"] = "testuser";
         $_POST["password"] = "testpassword";
@@ -23,7 +23,7 @@ class LoginServiceTest extends TestCase
         $this->assertContains("Location: uczen.php", xdebug_get_headers());
     }
 
-    public function testFailedLoginShowsErrorMessage()
+    public function testFailedLoginShowsErrorMessage() //testuje przypadki nieudanego logowania
     {
         $_POST["login"] = "nonexistentuser";
         $_POST["password"] = "wrongpassword";
