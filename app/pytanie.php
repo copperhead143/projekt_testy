@@ -1,40 +1,54 @@
 <?php
+class DatabaseConnection{
+    private static $instance;
+    private $conn;
+
+    private function __construct(){
+        $this->conn = new mysqli("localhost", "root", "","testy");
+
+        if($this->conn->connect_error){
+            die("nie udalo sie polaczyc z baza danych")
+        }
+    }
+
+    public static function getInstance(){
+        if(self::$instance == null){
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    public function getConnection(){
+        return $this->conn;
+    }
+}
+
+
+class TestQuestion{
+    public function addQuestion($test_nazwa, $tresc_pytania, $poprawna_odpowiedz){
+        $conn = DatabaseConnection::getInstance()->getConnection();
+    }
+
+    $sql = "INSERT INTO pytania (test_nazwa, pytanie, popr_odp)
+     VALUES ('$test_nazwa', '$tresc_pytania', '$poprawna_odpowiedz')";
+
+    if($conn->query($sql) === TRUE){
+        echo "pytanie dodane humor gituwa";
+    }else{
+        echo "no cusz przykra sprawa"
+    }
+
+}
+
 session_start();
 
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'prowadzacy') {
+
+if(isset($_SESSION['role']) && $_SESSION['role'] === 'prowadzacy'){
     $user_id = $_SESSION['user_id'];
 
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $conn = new mysqli("localhost", "root", "", "testy");
-
-        if ($conn->connect_error) {
-            die("Błąd połączenia z bazą danych: " . $conn->connect_error);
-        }
-
-        $test_nazwa = $_POST["id_test"];
-        $tresc_pytania = $_POST["pytanie"];
-        $poprawna_odpowiedz = $_POST["popr_odp"];
-
-        $sql = "INSERT INTO pytania (test_nazwa, pytanie, popr_odp)
-                VALUES ('$test_nazwa', '$tresc_pytania', '$poprawna_odpowiedz')";
-
-        if ($conn->query($sql) === TRUE) {
-            echo "Nowe pytanie zostało dodane do testu.";
-        } else {
-            echo "Błąd podczas dodawania pytania: " . $conn->error;
-        }
-
-        $conn->close();
+    if($_SERVER["REQUEST_METHOD"] === "POST"){
+        
     }
-
-    $conn = new mysqli("localhost", "root", "", "testy");
-
-    if ($conn->connect_error) {
-        die("Błąd połączenia z bazą danych: " . $conn->connect_error);
-    }
-
-    $sql_tests = "SELECT nazwa FROM test WHERE id_osoby = $user_id";
-    $result_tests = $conn->query($sql_tests);
 }
 ?>
 
