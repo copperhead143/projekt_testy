@@ -1,23 +1,34 @@
 <?php
 session_start();
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'uczen') {
-    $conn = new mysqli("localhost", "root", "", "testy");
+//dependency injection
+class TestFetcher {
+    private $conn;
 
-    if ($conn->connect_error) {
-        die("Błąd połączenia z bazą danych: " . $conn->connect_error);
+    public function __construct(mysqli $conn) {
+        $this->conn = $conn;
     }
 
-    $sql = "SELECT * FROM test";
-    $result = $conn->query($sql);  //pobranie testow z bazy danych zeby umozliwic ich wyswietlenie i wybor
+    public function getTests() {
+        $tests = [];
 
-    $tests = [];
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $tests[] = $row; //zapisanie testow w zmiennej
+        $sql = "SELECT * FROM test";
+        $result = $this->conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $tests[] = $row;
+            }
         }
-    }
 
-    $conn->close();
+        return $tests;
+    }
+}
+
+$conn = new mysqli("localhost", "root", "", "testy");
+$testFetcher = new TestFetcher($conn);
+
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'uczen') {
+    $tests = $testFetcher->getTests();
 } else {
     header("Location: login.php");
 }
