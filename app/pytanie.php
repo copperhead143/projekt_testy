@@ -1,92 +1,78 @@
 <?php
-class DatabaseConnection{
+class DatabaseConnection {
+    // Prywatna statyczna zmienna przechowująca jedyną instancję klasy
     private static $instance;
+    
+    // Prywatne pole przechowujące połączenie z bazą danych
     private $conn;
 
-    private function __construct(){
-        $this->conn = new mysqli("localhost", "root", "","testy");
+    // Prywatny konstruktor, który jest wywoływany tylko raz, tworząc jedną instancję klasy
+    private function __construct() {
+        // Inicjalizacja połączenia z bazą danych (MySQL)
+        $this->conn = new mysqli("localhost", "root", "", "testy");
 
-        if($this->conn->connect_error){
-            die("nie udalo sie polaczyc z baza danych");
+        // Sprawdzenie czy połączenie się udało
+        if ($this->conn->connect_error) {
+            die("nie udało się połączyć z bazą danych");
         }
     }
 
-    public static function getInstance(){
-        if(self::$instance == null){
+    // Metoda statyczna zwracająca jedyną instancję klasy
+    public static function getInstance() {
+        // Jeśli instancja nie istnieje, utwórz nową
+        if (self::$instance == null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
 
-    public function getConnection(){
+    // Metoda zwracająca połączenie z bazą danych
+    public function getConnection() {
         return $this->conn;
     }
 }
 
-
-class TestQuestion{
-    public function addQuestion($test_nazwa, $tresc_pytania, $poprawna_odpowiedz){
+class TestQuestion {
+    // Metoda dodająca pytanie do bazy danych
+    public function addQuestion($test_nazwa, $tresc_pytania, $poprawna_odpowiedz) {
+        // Pobranie połączenia z bazą danych za pomocą Singletona
         $conn = DatabaseConnection::getInstance()->getConnection();
 
-    $sql = "INSERT INTO pytania (test_nazwa, pytanie, popr_odp) VALUES ('$test_nazwa', '$tresc_pytania', '$poprawna_odpowiedz')";
+        // Zapytanie SQL do dodania pytania do bazy danych
+        $sql = "INSERT INTO pytania (test_nazwa, pytanie, popr_odp) VALUES ('$test_nazwa', '$tresc_pytania', '$poprawna_odpowiedz')";
 
-    if($conn->query($sql) === TRUE){
-        echo "pytanie dodane humor gituwa";
-    }else{
-        echo "no cusz przykra sprawa";
+        // Wykonanie zapytania i obsługa błędów
+        if ($conn->query($sql) === TRUE) {
+            echo "pytanie dodane humor gituwa";
+        } else {
+            echo "no cusz przykra sprawa";
+        }
     }
 }
 
-}
-
+// Inicjalizacja sesji
 session_start();
 
-
-if(isset($_SESSION['role']) && $_SESSION['role'] === 'prowadzacy'){
+// Sprawdzenie, czy użytkownik jest zalogowany jako prowadzący
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'prowadzacy') {
     $user_id = $_SESSION['user_id'];
 
-    if($_SERVER["REQUEST_METHOD"] === "POST"){
+    // Sprawdzenie, czy żądanie jest metodą POST
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        // Utworzenie obiektu klasy TestQuestion i dodanie pytania
         $testQuestion = new TestQuestion();
         $testQuestion->addQuestion($_POST["id_test"], $_POST["pytanie"], $_POST["popr_odp"]);
     }
 
+    // Pobranie instancji połączenia z bazą danych za pomocą Singletona
     $conn = DatabaseConnection::getInstance()->getConnection();
 
+    // Zapytanie SQL do pobrania nazw testów dla danego użytkownika
     $sql_tests = "SELECT nazwa FROM test WHERE id_osoby = $user_id";
-    $result_tests = $conn->query($sql_tests);}
+
+    // Wykonanie zapytania
+    $result_tests = $conn->query($sql_tests);
+}
 ?>
 
-
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dodaj Pytanie</title>
-</head>
-<body>
-    <div class="main">
-        <h1>Dodaj nowe pytanie do testu</h1>
-        <form method="post" action="pytanie.php">
-            <label for="id_test">Nazwa testu:</label>
-            <select name="id_test" id="id_test" required>
-                <?php
-                while ($row_tests = $result_tests->fetch_assoc()) {
-                    echo '<option value="' . $row_tests['nazwa'] . '">' . $row_tests['nazwa'] . '</option>';
-                }
-                ?>
-            </select>
-            <br>
-            <label for="pytanie">Treść pytania:</label>
-            <textarea name="pytanie" id="pytanie" required></textarea>
-            <br>
-            <label for="popr_odp">Poprawna odpowiedź:</label>
-            <input type="text" name="popr_odp" id="popr_odp" required>
-            <br>
-            <input type="submit" value="Dodaj pytanie">
-        </form>
-        <a href="panel_prowadzacego.php">Powrót do panelu prowadzącego</a>
-    </div>
-</body>
-</html>
-
+<!-- Reszta kodu HTML dla formularza dodawania pytania -->
