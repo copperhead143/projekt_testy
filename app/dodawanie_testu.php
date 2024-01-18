@@ -1,30 +1,37 @@
 <?php
 session_start();
-//wzorzec strategia
+// Strategia dodawania testów
 interface TestAdditionStrategy {
     public function addTest($user_id, $nazwa_testu);
 }
 
+// Konkretna strategia dla dodawania testów do bazy danych
 class DatabaseTestAddition implements TestAdditionStrategy {
     public function addTest($user_id, $nazwa_testu) {
+        // Nawiązanie połączenia z bazą danych
         $conn = new mysqli("localhost", "root", "", "testy");
 
+        // Sprawdzenie czy połączenie zostało poprawnie nawiązane
         if ($conn->connect_error) {
-            die("bazunia nie działa D: " . $conn->connect_error);
+            die("Błąd połączenia z bazą danych: " . $conn->connect_error);
         }
 
+        // Zapytanie SQL dodające test do bazy danych
         $sql = "INSERT INTO test (nazwa, id_osoby) VALUES ('$nazwa_testu', '$user_id')";
 
+        // Wykonanie zapytania SQL
         if ($conn->query($sql) === TRUE) {
-            echo "dodano tescia.";
+            echo "Dodano test.";
         } else {
-            echo "nie dodano tescia :c " . $conn->error;
+            echo "Nie dodano testu :c " . $conn->error;
         }
 
+        // Zamknięcie połączenia z bazą danych
         $conn->close();
     }
 }
 
+// Klasa zarządzająca strategią dodawania testów
 class TestService {
     private $additionStrategy;
 
@@ -33,20 +40,30 @@ class TestService {
     }
 
     public function addTest($user_id, $nazwa_testu) {
+        // Delegowanie zadania dodania testu do konkretnej strategii
         $this->additionStrategy->addTest($user_id, $nazwa_testu);
     }
 }
 
+// Sprawdzenie roli użytkownika (czy jest prowadzącym)
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'prowadzacy') {
+    // Sprawdzenie czy żądanie zostało wysłane metodą POST
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        // Pobranie danych z sesji i formularza
         $user_id = $_SESSION['user_id'];
         $nazwa_testu = $_POST["nazwa_testu"];
 
+        // Utworzenie obiektu konkretnej strategii (dodawania do bazy danych)
         $strategy = new DatabaseTestAddition();
+
+        // Utworzenie obiektu zarządzającego strategią
         $testService = new TestService($strategy);
+
+        // Wywołanie metody dodawania testu z użyciem strategii
         $testService->addTest($user_id, $nazwa_testu);
     }
 } else {
+    // Przekierowanie na stronę logowania, jeśli użytkownik nie jest prowadzącym
     header("Location: login.php");
 }
 ?>
