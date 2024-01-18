@@ -1,12 +1,12 @@
 <?php
 session_start();
-// Strategia dodawania testów
+// Strategia dodawania testów, zaczyna sie od stworzenia interfejsu, ktory okresla operacje do wykonania
 interface TestAdditionStrategy {
     public function addTest($user_id, $nazwa_testu);
 }
 
 // Konkretna strategia dla dodawania testów do bazy danych
-class DatabaseTestAddition implements TestAdditionStrategy {
+class DatabaseTestAddition implements TestAdditionStrategy { //konkretna implementacja metody, dodaje test do bazy
     public function addTest($user_id, $nazwa_testu) {
         // Nawiązanie połączenia z bazą danych
         $conn = new mysqli("localhost", "root", "", "testy");
@@ -32,11 +32,11 @@ class DatabaseTestAddition implements TestAdditionStrategy {
 }
 
 // Klasa zarządzająca strategią dodawania testów
-class TestService {
+class TestService { //kontekst
     private $additionStrategy;
 
     public function __construct(TestAdditionStrategy $additionStrategy) {
-        $this->additionStrategy = $additionStrategy;
+        $this->additionStrategy = $additionStrategy; //obiekt strategii
     }
 
     public function addTest($user_id, $nazwa_testu) {
